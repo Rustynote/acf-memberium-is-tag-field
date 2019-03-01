@@ -63,6 +63,17 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 		*/
 
 		function render_field_settings($field) {
+
+			$field['default_value'] = acf_encode_choices($field['default_value'], false);
+
+			// default_value
+			acf_render_field_setting($field, array(
+				'label'			=> __('Default Value', 'acf-memberium-is-tag'),
+				'instructions'	=> __('Enter each default value on a new line', 'acf-memberium-is-tag'),
+				'name'			=> 'default_value',
+				'type'			=> 'textarea',
+			));
+
 			// allow_null
 			acf_render_field_setting($field, array(
 				'label'			=> __('Allow Null?', 'acf-memberium-is-tag'),
@@ -158,13 +169,21 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			if(!empty($field['ajax_action'])) $select['data-ajax_action'] = $field['ajax_action'];
 
 			// hidden input is needed to allow validation to see <select> element with no selected value
-			if($field['multiple'] || $field['ui']) {
-				acf_hidden_input(array(
-					'id'	=> $field['id'] . '-input',
-					'name'	=> $field['name']
-				));
-			}
 
+			acf_hidden_input(array(
+				'id'	=> $field['id'] . '-input',
+				'name'	=> $field['name']
+			));
+
+			if(!empty($value) && is_array($value)) {
+				foreach($value as $id) {
+					if(empty($id)) {
+						continue;
+					}
+
+					$choices[$id] = ($this->if_memberium_tags_exists() ? $this->get_memberium_tag_name($id) : $id);
+				}
+			}
 			// append
 			$select['value'] = $value;
 			$select['choices'] = $choices;
@@ -182,6 +201,11 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 				'field_key'		=> '',
 				'paged'			=> 1
 			));
+
+			// Check if table exists
+			if(!$this->if_memberium_tags_exists()) {
+				return false;
+			}
 
 			// vars
 	   		$results = array();
@@ -204,6 +228,23 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			// return
 			return $response;
 		}
+
+		/**
+		 * Check if memberium tags table exists
+		 *
+		 * @since 1.0.0
+		 */
+		function if_memberium_tags_exists() {
+			global $wpdb;
+
+			$exists = $wpdb->get_row('SELECT 1 FROM memberium_tags LIMIT 1;');
+			if($exists) {
+				return true;
+			}
+
+			return false;
+		}
+
 		/**
 		 * Summary.
 		 *
@@ -231,6 +272,27 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			return $results;
 		}
 
+		function get_memberium_tag($id) {
+			global $wpdb;
+
+			$query = $wpdb->prepare('SELECT * FROM memberium_tags WHERE id = %d', $id);
+			$tag = $wpdb->get_row($query);
+			if($tag) {
+				return $tag;
+			}
+
+			return false;
+		}
+
+		function get_memberium_tag_name($id) {
+			$tag = $this->get_memberium_tag($id);
+			if($tag) {
+				return "{$tag->name} ({$tag->id})";
+			}
+
+			return $id;
+		}
+
 		function input_admin_enqueue_scripts() {
 			// vars
 			$url = $this->settings['url'];
@@ -242,5 +304,24 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 
 			parent::input_admin_enqueue_scripts();
 		}
+
+		function format_value($value, $post_id, $field) {
+			// array
+			if(acf_is_array($value)) {
+				if($field['return_format'] == 'comma') {
+					$value = implode(',', $value);
+				} else {
+					foreach($value as $i => $v) {
+						$value[ $i ] = $this->format_value_single($v, $post_id, $field);
+					}
+				}
+			} else {
+				$value = $this->format_value_single($value, $post_id, $field);
+			}
+
+			// return
+			return $value;
+		}
+
 	}
 }
