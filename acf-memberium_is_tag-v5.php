@@ -309,18 +309,19 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			// array
 			if(acf_is_array($value)) {
 				if($field['return_format'] == 'comma') {
-					$value = implode(',', $value);
+					$return_value = implode(',', $value);
 				} else {
+					$return_value = [];
 					foreach($value as $i => $v) {
-						$value[ $i ] = $this->format_value_single($v, $post_id, $field);
+						$return_value[] = $v;
 					}
 				}
 			} else {
-				$value = $this->format_value_single($value, $post_id, $field);
+				$return_value = $value;
 			}
 
 			// return
-			return $value;
+			return $return_value;
 		}
 
 	}
