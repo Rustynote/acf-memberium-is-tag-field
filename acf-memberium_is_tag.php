@@ -44,7 +44,7 @@ if(!class_exists('acf_plugin_memberium_is_tag')) {
 			);
 
 			// include field
-			add_action('acf/include_field_types', 	array($this, 'include_field')); // v5
+			add_action('acf/include_field_types', array($this, 'include_field')); // v5
 		}
 
 		function include_field($version = false) {

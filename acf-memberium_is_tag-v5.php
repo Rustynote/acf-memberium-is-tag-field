@@ -246,11 +246,11 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 		}
 
 		/**
-		 * Summary.
+		 * Search for a tags.
 		 *
-		 * @since 0.1.0
-		 * @var type $var Description.
-		 * @return
+		 * @since 1.0.0
+		 * @var string $search Keyword provided by acf ajax when user types into
+		 * 			   		   the select field.
 		 */
 		function get_memberium_tags($search) {
 			global $wpdb;
@@ -272,6 +272,13 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			return $results;
 		}
 
+		/**
+		 * Get a tag by tag id
+		 *
+		 * @since 1.0.0
+		 * @var int $id ID of tag
+		 * @return array|bool Return false if tag is not found
+		 */
 		function get_memberium_tag($id) {
 			global $wpdb;
 
@@ -284,6 +291,13 @@ if(!class_exists('acf_field_memberium_is_tag')) {
 			return false;
 		}
 
+		/**
+		 * Get tag name with a id in the brackets.
+		 *
+		 * @since 1.0.0
+		 * @var int $id ID of tag
+		 * @return string Return tag name or tag id if tag is not found.
+		 */
 		function get_memberium_tag_name($id) {
 			$tag = $this->get_memberium_tag($id);
 			if($tag) {
